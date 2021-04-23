@@ -1,3 +1,5 @@
+// +build linux
+
 package main
 
 import (
@@ -34,10 +36,12 @@ func main() {
 			}
 			fmt.Print("\n")
 		}
+		os.Exit(1)
 	}
 	// Print configurations per domain
 	fmt.Printf("Configs for per hosts:\n")
 	for i := range programConf.Domains {
 		fmt.Printf("%s\n", programConf.Domains[i].String())
 	}
+
 }
