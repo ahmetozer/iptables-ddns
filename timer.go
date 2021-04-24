@@ -27,8 +27,8 @@ func (obj Domain) schedule() *time.Ticker {
 					if debug {
 						fmt.Printf("Addr changed")
 					}
+					obj.Iptables(first_resolution, second_resolution)
 					first_resolution = second_resolution
-					//Exec function
 				} else if debug {
 					fmt.Printf("Addr same")
 				}
