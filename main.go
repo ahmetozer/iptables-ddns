@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 func main() {
@@ -44,4 +45,14 @@ func main() {
 		fmt.Printf("%s\n", programConf.Domains[i].String())
 	}
 
+	// Start DDNS function
+	var schedules schedulers
+	for i := range programConf.Domains {
+		schedules = append(schedules, programConf.Domains[i].schedule())
+		defer schedules[i].Stop()
+		// To avoid many DNS queries and nftables changes hits to rate limit
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	time.Sleep(20 * time.Second)
 }
