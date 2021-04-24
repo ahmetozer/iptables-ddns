@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -18,6 +19,24 @@ var (
 func init() {
 	flag.BoolVar(&debug, "D", false, "Debug mode")
 	flag.Parse()
+
+	// Check the required programs
+	requiredPrograms := []string{"iptables", "ip6tables"}
+	var found int
+	for i, s := range requiredPrograms {
+		// Get path of required programs
+		_, err := exec.LookPath(s)
+		if err == nil {
+			found++
+		} else {
+			fmt.Printf("Required program %v : %v cannot found.\n", i+1, s)
+		}
+	}
+	if found != len(requiredPrograms) { //sh and df is must required. If is not found in software than exit.
+		fmt.Printf("Please install required programs and re-execute this\n")
+		os.Exit(3)
+	}
+
 }
 func main() {
 	programConf, err := LoadConfig()
