@@ -3,11 +3,22 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
+var (
+	debug bool = false
+)
+
+func init() {
+	flag.BoolVar(&debug, "D", false, "Debug mode")
+	flag.Parse()
+}
 func main() {
 	programConf, err := LoadConfig()
 	if err != nil {
@@ -46,6 +57,7 @@ func main() {
 	}
 
 	// Start DDNS function
+	fmt.Println("")
 	var schedules schedulers
 	for i := range programConf.Domains {
 		schedules = append(schedules, programConf.Domains[i].schedule())
@@ -53,6 +65,9 @@ func main() {
 		// To avoid many DNS queries and nftables changes hits to rate limit
 		time.Sleep(500 * time.Millisecond)
 	}
-
-	time.Sleep(20 * time.Second)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	fmt.Println("Schedulers are started.")
+	<-sigs
+	fmt.Println("\nGood bye.")
 }
