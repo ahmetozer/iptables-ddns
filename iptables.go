@@ -86,7 +86,7 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 				// 	fmt.Printf("%s\n", words)
 				// }
 
-				replaceHostToAddr(&words, obj.Name, address)
+				obj.replaceHostToAddr(&words, address)
 
 				if debug {
 					fmt.Printf("%s %v\n", iptablesCommand, words)
@@ -107,7 +107,7 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 				} else {
 					words = append([]string{"-D"}, words...)
 				}
-				replaceHostToAddr(&words, obj.Name, address)
+				obj.replaceHostToAddr(&words, address)
 
 				if debug {
 					fmt.Printf("%s %v\n", iptablesCommand, words)
@@ -128,9 +128,11 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 	return nil
 }
 
-func replaceHostToAddr(obj *[]string, old string, new string) {
-	for i := range *obj {
-		(*obj)[i] = strings.Replace((*obj)[i], old, new, 1)
+func (obj Domain) replaceHostToAddr(k *[]string, new string) {
+	for i := range *k {
+		if StartWithHost((*k)[i], obj.Name, obj.Qtype) {
+			(*k)[i] = strings.Replace((*k)[i], obj.Name, new, 1)
+		}
 	}
 }
 
