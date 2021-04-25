@@ -1,5 +1,3 @@
-// +build linux
-
 package main
 
 import (
@@ -21,6 +19,7 @@ var (
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Debug mode")
+
 	if os.Getenv("runningenv") == "container" {
 		flag.StringVar(&iptablesFile, "l", "/config/iptables.list", "Iptables rule list")
 		flag.StringVar(&configFile, "-f", "/config/config.json", "Program config file")
@@ -54,7 +53,7 @@ func init() {
 		errOnExit = true
 	}
 
-	if !checkCap("cap_net_admin") {
+	if !(os.Getenv("bDebug") == "true") && !checkCap("cap_net_admin") {
 		fmt.Printf("Error program does not have cap_net_admin capabilities\n")
 		if os.Getenv("runningenv") == "container" {
 			fmt.Printf("execute container with \"--cap-add net_admin\" arg\n")
@@ -68,6 +67,10 @@ func init() {
 
 }
 func main() {
+	if debug {
+		fmt.Printf("Debug: on\n")
+	}
+
 	programConf, err := LoadConfig()
 	if err != nil {
 		fmt.Printf("%s", err)

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -53,4 +54,32 @@ func IsDomain(host string) bool {
 		return false
 	}
 	return match
+}
+
+func DomainContains(text string, search string, mode string) bool {
+	words := strings.Fields(text)
+	for _, arg := range words {
+		if StartWithHost(arg, search, mode) {
+			return true
+		}
+	}
+	return false
+}
+
+func StartWithHost(text string, search string, mode string) bool {
+	if mode == "ip" {
+		match, err := regexp.MatchString("^"+search, text)
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		return match
+	} else {
+		match, err := regexp.MatchString("^(\\[)?"+search, text)
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		return match
+	}
 }

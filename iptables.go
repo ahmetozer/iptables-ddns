@@ -57,7 +57,7 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 	lineNumber := 1
 	for scanner.Scan() {
 		// If its not commend and contains domain name
-		if scanner.Text()[0] != 35 && strings.Contains(scanner.Text(), obj.Name) {
+		if scanner.Text()[0] != 35 && DomainContains(scanner.Text(), obj.Name, obj.Qtype) {
 			if debug {
 				fmt.Println("Line", lineNumber, " ", scanner.Text())
 			}
