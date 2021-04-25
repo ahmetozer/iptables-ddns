@@ -15,11 +15,20 @@ import (
 var (
 	debug        bool = false
 	iptablesFile string
+	configFile   string
+	printConfig  bool = false
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Debug mode")
-	flag.StringVar(&iptablesFile, "rlist", "iptables.sh", "Iptables rule list")
+	if os.Getenv("runningenv") == "container" {
+		flag.StringVar(&iptablesFile, "l", "/config/iptables.list", "Iptables rule list")
+		flag.StringVar(&configFile, "-f", "/config/config.json", "Program config file")
+	} else {
+		flag.StringVar(&iptablesFile, "l", "iptables.list", "Iptables rule list")
+		flag.StringVar(&configFile, "-f", "config.json", "Program config file")
+	}
+	flag.BoolVar(&printConfig, "-p", false, "Print config file")
 	flag.Parse()
 
 	// Check the required programs
@@ -54,9 +63,13 @@ func main() {
 	if err != nil {
 		fmt.Printf("%s", err)
 		os.Exit(1)
+	} else {
+		fmt.Printf("config: loaded\n")
 	}
 
-	fmt.Printf("%s", programConf.PrintDefaults())
+	if printConfig || debug {
+		fmt.Printf("%s", programConf.PrintDefaults())
+	}
 
 	// Duplicated hosts check
 	if duplicatedHosts := programConf.DuplicatedHostsCheck(); duplicatedHosts != nil {
@@ -79,15 +92,20 @@ func main() {
 			fmt.Print("\n")
 		}
 		os.Exit(1)
+	} else {
+		fmt.Printf("config: ok\n")
 	}
+
 	// Print configurations per domain
-	fmt.Printf("Configs for per hosts:\n")
-	for i := range programConf.Domains {
-		fmt.Printf("%s\n", programConf.Domains[i].String())
+	if printConfig || debug {
+		fmt.Printf("Configs for per hosts:\n")
+		for i := range programConf.Domains {
+			fmt.Printf("%s\n", programConf.Domains[i].String())
+		}
+		fmt.Println("")
 	}
 
 	// Start DDNS function
-	fmt.Println("")
 	var schedules schedulers
 	for i := range programConf.Domains {
 		schedules = append(schedules, programConf.Domains[i].schedule())

@@ -25,12 +25,12 @@ func LoadConfig() (configStruct, error) {
 			Interval: 300,
 		},
 	}
-	configFile, err := ioutil.ReadFile("config.json")
+	configFileData, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return defaultConf, fmt.Errorf(fmt.Sprintf("Err while reading the config.json file: %s", err))
 	}
 
-	err = json.Unmarshal([]byte(configFile), &defaultConf)
+	err = json.Unmarshal([]byte(configFileData), &defaultConf)
 	if err != nil {
 		return defaultConf, fmt.Errorf(fmt.Sprintf("Err while parsing the config: %s", err))
 	}

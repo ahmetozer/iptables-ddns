@@ -50,7 +50,7 @@ func (obj *Domain) Check() []string {
 
 //String Domain to string
 func (k Domain) String() string {
-	return fmt.Sprintf("%s\ttype:%s \tns:%s\tinterval:%v", k.Name, k.Qtype, k.Ns, k.Interval)
+	return fmt.Sprintf("%s type:%s ns:%s interval:%v", k.Name, k.Qtype, k.Ns, k.Interval)
 }
 
 func (k Domains) Check() [][]string {
