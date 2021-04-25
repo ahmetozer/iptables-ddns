@@ -25,15 +25,12 @@ func (obj Domain) schedule() *time.Ticker {
 				}
 				if first_resolution != second_resolution {
 					if debug {
-						fmt.Printf("Addr changed")
+						fmt.Printf("Addr changed\n")
 					}
 					obj.Iptables(first_resolution, second_resolution)
 					first_resolution = second_resolution
 				} else if debug {
-					fmt.Printf("Addr same")
-				}
-				if debug {
-					fmt.Printf("\n")
+					fmt.Printf("Addr same \n")
 				}
 			} else {
 				fmt.Printf("Error while querying host \"%s\": %s\n", obj.Name, err)

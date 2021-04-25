@@ -13,14 +13,17 @@ import (
 )
 
 var (
-	debug bool = false
+	debug        bool = false
+	iptablesFile string
 )
 
 func init() {
-	flag.BoolVar(&debug, "D", false, "Debug mode")
+	flag.BoolVar(&debug, "debug", false, "Debug mode")
+	flag.StringVar(&iptablesFile, "rlist", "iptables.sh", "Iptables rule list")
 	flag.Parse()
 
 	// Check the required programs
+	errOnExit := false
 	requiredPrograms := []string{"iptables", "ip6tables"}
 	var found int
 	for i, s := range requiredPrograms {
@@ -34,6 +37,14 @@ func init() {
 	}
 	if found != len(requiredPrograms) { //sh and df is must required. If is not found in software than exit.
 		fmt.Printf("Please install required programs and re-execute this\n")
+		errOnExit = true
+	}
+
+	if _, err := os.Stat(iptablesFile); err != nil {
+		fmt.Printf("Error while accesing %s:\t%s\n", iptablesFile, err)
+		errOnExit = true
+	}
+	if errOnExit {
 		os.Exit(3)
 	}
 
