@@ -53,6 +53,15 @@ func init() {
 		fmt.Printf("Error while accesing %s:\t%s\n", iptablesFile, err)
 		errOnExit = true
 	}
+
+	if !checkCap("cap_net_admin") {
+		fmt.Printf("Error program does not have cap_net_admin capabilities\n")
+		if os.Getenv("runningenv") == "container" {
+			fmt.Printf("execute container with \"--cap-add net_admin\" arg\n")
+		}
+		errOnExit = true
+	}
+
 	if errOnExit {
 		os.Exit(3)
 	}

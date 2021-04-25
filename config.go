@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strings"
+
+	cap "kernel.org/pub/linux/libs/security/libcap/cap"
 )
 
 type Defaults struct {
@@ -83,4 +86,14 @@ func (obj configStruct) CheckDefaults() error {
 		return fmt.Errorf(fmt.Sprintf("Defaults has a error: %s", errors))
 	}
 	return nil
+}
+
+func checkCap(capName string) bool {
+	s := strings.Split(fmt.Sprintf("%s", cap.GetProc()), ",")
+	for i := range s {
+		if s[i] == capName {
+			return true
+		}
+	}
+	return false
 }
