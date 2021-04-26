@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	debug        bool = false
-	iptablesFile string
-	configFile   string
-	printConfig  bool = false
+	debug            bool = false
+	iptablesFile     string
+	configFile       string
+	printConfig      bool = false
+	ddnsCurrentTable map[string][]string
 )
 
 func init() {
@@ -22,12 +23,12 @@ func init() {
 
 	if os.Getenv("runningenv") == "container" {
 		flag.StringVar(&iptablesFile, "l", "/config/iptables.list", "Iptables rule list")
-		flag.StringVar(&configFile, "-f", "/config/config.json", "Program config file")
+		flag.StringVar(&configFile, "f", "/config/config.json", "Program config file")
 	} else {
 		flag.StringVar(&iptablesFile, "l", "iptables.list", "Iptables rule list")
-		flag.StringVar(&configFile, "-f", "config.json", "Program config file")
+		flag.StringVar(&configFile, "f", "config.json", "Program config file")
 	}
-	flag.BoolVar(&printConfig, "-p", false, "Print config file")
+	flag.BoolVar(&printConfig, "p", false, "Print config file")
 	flag.Parse()
 
 	// Check the required programs
@@ -65,6 +66,7 @@ func init() {
 		os.Exit(3)
 	}
 
+	ddnsCurrentTable = make(map[string][]string)
 }
 func main() {
 	if debug {
@@ -129,5 +131,14 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	fmt.Println("Schedulers are started.")
 	<-sigs
+	fmt.Println("Restoring Changes")
+	for a := range ddnsCurrentTable {
+		command := ddnsCurrentTable[a][0]
+		ddnsCurrentTable[a][0] = "-D"
+		if debug {
+			fmt.Printf("%s %s %s\n", a, command, ddnsCurrentTable[a])
+		}
+		iptables(command, ddnsCurrentTable[a]...)
+	}
 	fmt.Println("\nGood bye.")
 }

@@ -37,7 +37,7 @@ func (obj *Domain) Check() []string {
 		errors = append(errors, "Type is not IP or ip6: "+obj.Qtype)
 	}
 
-	if obj.Interval < 300 {
+	if obj.Interval < 100 {
 		errors = append(errors, "Interval is too low: "+fmt.Sprint(obj.Interval))
 	}
 

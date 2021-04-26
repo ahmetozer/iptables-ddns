@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha1"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,8 @@ import (
 )
 
 type errorArray []error
+
+var clearExit map[string]string
 
 //Iptables add and delte mode for Iptables commands to related domain
 func (obj Domain) Iptables(first_resolution string, second_resolution string) error {
@@ -54,15 +57,14 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	lineNumber := 1
+	lineNumber := 0
 	for scanner.Scan() {
+		lineNumber++
 		// If its not commend and contains domain name
-		if scanner.Text()[0] != 35 && DomainContains(scanner.Text(), obj.Name, obj.Qtype) {
+		if len(scanner.Text()) != 0 && (scanner.Text()[0] != 35 && DomainContains(scanner.Text(), obj.Name, obj.Qtype)) {
 			if debug {
 				fmt.Println("Line", lineNumber, " ", scanner.Text())
 			}
-
-			lineNumber++
 
 			if mode == "add" {
 				// Detect Add or inject
@@ -91,9 +93,16 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 				if debug {
 					fmt.Printf("%s %v\n", iptablesCommand, words)
 				}
-				err := iptables(iptablesCommand, words...)
-				if err != nil {
-					fmt.Printf("%s\n", err)
+
+				currentRuleHash, newRule := ruleHash(iptablesCommand, words)
+				_, currentRuleExist := ddnsCurrentTable[currentRuleHash]
+				if !currentRuleExist {
+					err := iptables(iptablesCommand, words...)
+					if err != nil {
+						fmt.Printf("%s\n", err)
+					} else {
+						ddnsCurrentTable[currentRuleHash] = newRule
+					}
 				}
 			} else if mode == "delete" {
 				// Detect Add or inject
@@ -113,7 +122,14 @@ func (obj Domain) IptablesExecuter(mode string, address string) error {
 					fmt.Printf("%s %v\n", iptablesCommand, words)
 				}
 				err := iptables(iptablesCommand, words...)
-				if err != nil {
+				if err == nil {
+					// Remove rule from ddnsCurrentTable
+					currentRuleHash, _ := ruleHash(iptablesCommand, words)
+					_, currentRuleExist := ddnsCurrentTable[currentRuleHash]
+					if currentRuleExist {
+						delete(ddnsCurrentTable, currentRuleHash)
+					}
+				} else {
 					fmt.Printf("%s\n", err)
 				}
 			}
@@ -137,7 +153,8 @@ func (obj Domain) replaceHostToAddr(k *[]string, new string) {
 }
 
 func iptables(iptablesCommand string, words ...string) error {
-	cmd := exec.Command(iptablesCommand, words...)
+	wait := []string{"-w", "100"}
+	cmd := exec.Command(iptablesCommand, append(words, wait...)...)
 	var cmdErr, cmdOut bytes.Buffer
 	cmd.Stderr = &cmdErr
 	cmd.Stdout = &cmdOut
@@ -146,4 +163,13 @@ func iptables(iptablesCommand string, words ...string) error {
 		return fmt.Errorf("%s %s: %s %s %s", iptablesCommand, words, err, cmdErr.String(), cmdOut.String())
 	}
 	return nil
+}
+
+func ruleHash(iptablesCommand string, obj []string) (string, []string) {
+	temp_obj := make([]string, len(obj), cap(obj))
+	copy(temp_obj, obj)
+	temp_obj[0] = iptablesCommand
+	h := sha1.New()
+	h.Write([]byte(strings.Join(temp_obj, "")))
+	return fmt.Sprintf("%x", h.Sum(nil)), temp_obj
 }
