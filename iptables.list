@@ -1,3 +1,15 @@
 # Example Iptables List
--A PREROUTING -i eth0 -s 198.51.100.48 -p tcp  --dport 443 -j DNAT --to-destination ddns.example.domain.test:53 -t nat
--A PREROUTING -i eth0 -s 198.51.100.90 -p tcp  --dport 80 -j DNAT --to-destination 2ddns.example.domain.test:8080 -t nat
+
+# Route incoming requests to container
+-A PREROUTING -i eth0 -s ddns.example.domain.test -p tcp  --dport 443 -j DNAT --to-destination 172.23.0.50:8443 -t nat
+-A PREROUTING -i eth0 -s 2ddns.example.domain.test -p tcp  --dport 443 -j DNAT --to-destination 172.23.0.52:8443 -t nat
+
+#  Forward ip to remote address
+-A PREROUTING -i lan1 -d 172.23.0.50 -j DNAT --to-destination ddns.example.domain.test -t nat
+
+# Allow SSH
+-A INPUT -p tcp -s 3ddns.example.domain.test --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+-A OUTPUT -p tcp -d 3ddns.example.domain.test  --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+# Allow IP
+-A INPUT -i eth0 -s 4ddns.example.domain.test -j ACCEPT
