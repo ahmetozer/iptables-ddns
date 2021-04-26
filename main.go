@@ -12,14 +12,16 @@ import (
 
 var (
 	debug            bool = false
+	printConfig      bool = false
+	keep             bool = false
 	iptablesFile     string
 	configFile       string
-	printConfig      bool = false
 	ddnsCurrentTable map[string][]string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Debug mode")
+	flag.BoolVar(&keep, "keep", false, "Don't remove changes on exit")
 
 	if os.Getenv("runningenv") == "container" {
 		flag.StringVar(&iptablesFile, "l", "/config/iptables.list", "Iptables rule list")
@@ -28,11 +30,11 @@ func init() {
 		flag.StringVar(&iptablesFile, "l", "iptables.list", "Iptables rule list")
 		flag.StringVar(&configFile, "f", "config.json", "Program config file")
 	}
-	flag.BoolVar(&printConfig, "p", false, "Print config file")
+	flag.BoolVar(&printConfig, "p", false, "Prints configs per hosts")
 	flag.Parse()
 
 	// Check the required programs
-	errOnExit := false
+	errOnExit := 0
 	requiredPrograms := []string{"iptables", "ip6tables"}
 	var found int
 	for i, s := range requiredPrograms {
@@ -46,12 +48,17 @@ func init() {
 	}
 	if found != len(requiredPrograms) { //sh and df is must required. If is not found in software than exit.
 		fmt.Printf("Please install required programs and re-execute this\n")
-		errOnExit = true
+		errOnExit++
 	}
 
 	if _, err := os.Stat(iptablesFile); err != nil {
 		fmt.Printf("Error while accesing %s:\t%s\n", iptablesFile, err)
-		errOnExit = true
+		errOnExit++
+	}
+
+	if _, err := os.Stat(configFile); err != nil {
+		fmt.Printf("Error while accesing %s:\t%s\n", configFile, err)
+		errOnExit++
 	}
 
 	if !(os.Getenv("bDebug") == "true") && !checkCap("cap_net_admin") {
@@ -59,10 +66,16 @@ func init() {
 		if os.Getenv("runningenv") == "container" {
 			fmt.Printf("execute container with \"--cap-add net_admin\" arg\n")
 		}
-		errOnExit = true
+		errOnExit++
 	}
 
-	if errOnExit {
+	if errOnExit > 0 {
+		if errOnExit == 1 {
+			fmt.Println("The program will be closed due to an error.")
+		} else {
+			fmt.Println("The program will be closed due to errors")
+		}
+
 		os.Exit(3)
 	}
 
@@ -131,14 +144,16 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	fmt.Println("Schedulers are started.")
 	<-sigs
-	fmt.Println("Restoring Changes")
-	for a := range ddnsCurrentTable {
-		command := ddnsCurrentTable[a][0]
-		ddnsCurrentTable[a][0] = "-D"
-		if debug {
-			fmt.Printf("%s %s %s\n", a, command, ddnsCurrentTable[a])
+	if !keep {
+		fmt.Println("Restoring Changes")
+		for a := range ddnsCurrentTable {
+			command := ddnsCurrentTable[a][0]
+			ddnsCurrentTable[a][0] = "-D"
+			if debug {
+				fmt.Printf("%s %s %s\n", a, command, ddnsCurrentTable[a])
+			}
+			iptables(command, ddnsCurrentTable[a]...)
 		}
-		iptables(command, ddnsCurrentTable[a]...)
 	}
 	fmt.Println("\nGood bye.")
 }

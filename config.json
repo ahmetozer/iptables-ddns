@@ -9,8 +9,17 @@
             "type": "ip",
             "ns":"203.0.113.56"
         },
-		{
+         {
             "name": "2ddns.example.domain.test"
+        },
+        {
+            "name": "3ddns.example.domain.test",
+            "ns": "192.0.2.57"
+        },
+        {
+            "name": "4ddns.example.domain.test",
+            "ns": "192.0.2.57",
+            "type":"ip6"
         }
     ]
-}
+ }

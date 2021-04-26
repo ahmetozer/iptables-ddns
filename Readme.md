@@ -37,8 +37,8 @@ Built in defaults
 #### Domain
 
 You can change the configuration per domain in the `domains` block.
-You have to create an object per domain in the `domains` array to work and the domain name must be indicated at the name variable.
-**Note:** Non indicated domains in iptables.list will not work.
+You have to create an object per domain in the `domains` array to work and the domain name must be indicated at the name variable.  
+**Note:** Non indicated domains in iptables.list will not work.  
 You can change the type of domain with the `type` variable to “ip” or “ip6”. Also, the public recursive name server caches the request. If you want to update your domains much faster, you can directly give your domain's name server in `ns` variable and the system is not affected by the cache.
 
 ```json
@@ -103,10 +103,40 @@ Your iptables rules are located in this file. You can do a block, allow or other
 -A INPUT -i eth0 -s 4ddns.example.domain.test -j ACCEPT
 ```
 
-## Deploy
+## Run
+
+You can run this software inside the container on the host network or build it from source and execute on your system.
+
+### arguments
+
+- **-debug**  
+Debug mode
+
+- **-f**  
+Program config file location
+
+- **-l**  
+Program config file location
+
+- **-p**  
+Prints configs per hosts
+
+- **-keep**  
+Don’t remove created rules on exit.
+
+### Container
 
 After configuration in iptables.list and config.json, start the container with net_admin capabilities and mount your configuration folder to the container.
 
 ```bash
-docker run -it -d --name iptables-ddns --rm --cap-add=net_admin -v /data/config/iptables-ddns/:/config/ --network host ghcr.io/ahmetozer/iptables-ddns:latest
+docker run -it -d --name iptables-ddns --rm --cap-add=net_admin --network host  -v /data/config/iptables-ddns/:/config/ ghcr.io/ahmetozer/iptables-ddns:latest
+```
+
+### From source
+
+This system requires iptables and ip6tables. If you don't have it on the system, please install it before the execution.
+
+```bash
+go get -v github.com/ahmetozer/iptables-ddns
+iptables-ddns
 ```

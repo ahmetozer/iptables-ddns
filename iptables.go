@@ -13,8 +13,6 @@ import (
 
 type errorArray []error
 
-var clearExit map[string]string
-
 //Iptables add and delete mode for Iptables commands to related domain
 func (obj Domain) Iptables(first_resolution string, second_resolution string) error {
 	// Remove netfilter rules for old IPs
