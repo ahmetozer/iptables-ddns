@@ -14,16 +14,24 @@ var (
 	debug            bool = false
 	printConfig      bool = false
 	keep             bool = false
+	printVersion     bool = false
+	printHelp        bool = false
 	iptablesFile     string
 	configFile       string
+	GitTag           string = ""
+	GitCommit        string = ""
+	GitUrl           string = ""
+	BuildTime        string = ""
+	RunningEnv       string = ""
 	ddnsCurrentTable map[string][]string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "Debug mode")
 	flag.BoolVar(&keep, "keep", false, "Don't remove changes on exit")
+	flag.BoolVar(&printVersion, "v", false, "Print version")
 
-	if os.Getenv("runningenv") == "container" {
+	if RunningEnv == "container" {
 		flag.StringVar(&iptablesFile, "l", "/config/iptables.list", "Iptables rule list")
 		flag.StringVar(&configFile, "f", "/config/config.json", "Program config file")
 	} else {
@@ -31,7 +39,16 @@ func init() {
 		flag.StringVar(&configFile, "f", "config.json", "Program config file")
 	}
 	flag.BoolVar(&printConfig, "p", false, "Prints configs per hosts")
+	flag.BoolVar(&printHelp, "h", false, "Help")
 	flag.Parse()
+
+	if printVersion {
+		pVersion()
+	}
+	if printHelp {
+		flag.PrintDefaults()
+		pVersion()
+	}
 
 	// Check the required programs
 	errOnExit := 0
@@ -63,7 +80,7 @@ func init() {
 
 	if !(os.Getenv("bDebug") == "true") && !checkCap("cap_net_admin") {
 		fmt.Printf("Error program does not have cap_net_admin capabilities\n")
-		if os.Getenv("runningenv") == "container" {
+		if RunningEnv == "container" {
 			fmt.Printf("execute container with \"--cap-add net_admin\" arg\n")
 		}
 		errOnExit++
@@ -156,4 +173,26 @@ func main() {
 		}
 	}
 	fmt.Println("\nGood bye.")
+}
+
+func pVersion() {
+	fmt.Printf("\n\tIptables-DDNS is a firewall management tool to keep update firewall rules with dynamic DNS.\n")
+
+	if BuildTime != "" {
+		fmt.Printf("\tProgram build date: %s\n", BuildTime)
+	}
+
+	if GitCommit != "" {
+		fmt.Printf("\tCommmit: %s\n", GitCommit)
+	}
+
+	if GitTag != "" {
+		fmt.Printf("\tTag: %s\n", GitTag)
+	}
+
+	if GitUrl != "" {
+		fmt.Printf("\tRepo Url: %s\n", GitUrl)
+	}
+
+	os.Exit(0)
 }

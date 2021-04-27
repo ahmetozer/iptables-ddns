@@ -5,14 +5,14 @@ Iptables-DDNS is a firewall management tool to keep update firewall rules with d
 ## How it works ?
 
 The application needs two configuration files which are config.json and iptables.list.
-Config list includes default configurations for the application such as name server,default interval and default mode (ip,ip6) and hosts.  
-After loading config file at startup, the system starts to update functions per domain. Each update function resolves domains and if there is a change, functions inspect the iptables.list and if its related to domain, function executes iptables to apply new rules and removes old rules.
+Config list includes default configurations for the application such as name server, default interval and default mode (ip,ip6) and hosts.  
+After loading the config file at startup, the system starts to update functions per domain. Each update function resolves domains and if there is a change, functions inspect the iptables.list and if it`s related to domain, the function executes iptables to apply new rules and removes old rules.
 
 ## Why ?
 
-Many devices such as modem and routers have a ddns support even if too old. Many clients don`t have a static IP and their addresses change in every new PPPoE session. With this you can allow requests to services in bare port or ip without using proxy or vpn tools.
+Many devices such as modem and routers have DDNS support even if too old. Many clients don`t have a static IP and their addresses change in every new PPPoE session. With this, you can allow requests to services in bare port or IP without using proxy or VPN tools.
 
-Another development reason for this system is to expose different services on the same port for per ip addresses with DNAT rule.
+Another development reason for this system is to expose different services on the same port per IP addresses with DNAT rule.
 
 ## Configuration
 
@@ -22,9 +22,10 @@ In order for the system to work, you need to make settings on two different file
 
 #### Defaults
 
-Your domain addresses and their configurations are located in this file.
-The program has a built in configurations but you can change this defaults with `defaults` block in config.json
-Built in defaults
+Your domain addresses and their configurations are located in this file.  
+The program has a built-in configuration but you can change these defaults with the `defaults` block in config.json  
+
+Built-in defaults
 
 ```json
 "defaults": {
@@ -81,7 +82,8 @@ You can change the type of domain with the `type` variable to “ip” or “ip6
 
 ### iptables.list
 
-Your iptables rules are located in this file. You can do a block, allow or other iptables related actions within this file. Your configuration must be like an `iptables -S` command output.
+Your iptables rules are located in this file. You can do a block, allow or other iptables related actions within this file.  
+Your configuration must be like an `iptables -S` command output.
 
 **Note:** If your rule is in the table, don’t forget to add table argument `-t` with table name like `-t nat` in your rule line.
 
@@ -105,24 +107,23 @@ Your iptables rules are located in this file. You can do a block, allow or other
 
 ## Run
 
-You can run this software inside the container on the host network or build it from source and execute on your system.
+You can run this software inside the container on the host network or build it from the source and execute it on your system.
 
-### arguments
+### Arguments
 
-- **-debug**  
-Debug mode
-
-- **-f**  
-Program config file location
-
-- **-l**  
-Program config file location
-
-- **-p**  
-Prints configs per hosts
-
-- **-keep**  
-Don’t remove created rules on exit.
+```md
+Usage of iptables-ddns:
+  -debug
+        Debug mode
+  -f string
+        Program config file (default "/config/config.json")
+  -keep
+        Don`t remove changes on exit
+  -l string
+        Iptables rule list (default "/config/iptables.list")
+  -p    Prints configs per hosts
+  -v    Print version
+  ```
 
 ### Container
 

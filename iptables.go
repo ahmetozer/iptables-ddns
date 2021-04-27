@@ -18,6 +18,7 @@ func (obj Domain) Iptables(first_resolution string, second_resolution string) er
 	// Remove netfilter rules for old IPs
 	var errA errorArray
 	if first_resolution != "" {
+		// Replace this function with has table
 		err := obj.IptablesExecuter("delete", first_resolution)
 		if err != nil {
 			errA = append(errA, err)
